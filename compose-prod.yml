@@ -5,6 +5,7 @@ services:
     volumes:
       - ./gemini_prompt.md:/app/gemini_prompt.md
       - ./gemini_responses.json:/app/gemini_responses.json
+      - ./.env:/app/.env
     env_file:
       - .env
     command: php run.php
