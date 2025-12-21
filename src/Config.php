@@ -12,7 +12,7 @@ class Config
     public function __construct(
         protected string $botApiToken,
         protected string $botUsername,
-        protected array $adminIds = [],
+        protected array $adminIds,
         protected int $updateTimeoutSeconds,
     ) {
     }

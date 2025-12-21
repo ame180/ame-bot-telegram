@@ -26,7 +26,7 @@ if (empty($botToken) || empty($botUsername)) {
     exit(1);
 }
 
-if ($updateTimeoutSeconds === null) {
+if (null === $updateTimeoutSeconds) {
     echo 'Please configure UPDATE_TIMEOUT_SECONDS in .env' . PHP_EOL;
     exit(1);
 }

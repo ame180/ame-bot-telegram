@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace AmeBot\MessageHandlers;
 
 use AmeBot\Services\GeminiConfig;
-use Gemini;
 use Gemini\Data\Content;
 use Longman\TelegramBot\Entities\Message;
 use Longman\TelegramBot\Entities\ServerResponse;
@@ -42,8 +41,8 @@ class GeminiHandler implements MessageHandlerInterface
         }
 
         try {
-            $client = Gemini::client($apiKey);
-            
+            $client = \Gemini::client($apiKey);
+
             $model = $client
                 ->generativeModel('gemini-3-flash-preview')
                 ->withSystemInstruction(
@@ -60,7 +59,7 @@ class GeminiHandler implements MessageHandlerInterface
             ]);
         } catch (\Exception $e) {
             echo 'Gemini API error: ' . $e->getMessage() . PHP_EOL;
-            
+
             return Request::sendMessage([
                 'chat_id' => $message->getChat()->getId(),
                 'text' => GeminiConfig::getResponse('error', 'Sorry, I encountered an error. Please check the logs for details.'),
@@ -71,9 +70,9 @@ class GeminiHandler implements MessageHandlerInterface
     private function extractMessageAfterTrigger(string $text): string
     {
         // Remove the trigger phrase "hey ame"
-        $withoutTrigger = preg_replace('/^hey\s+ame/i', '', $text);
-        
+        $withoutTrigger = (string) preg_replace('/^hey\s+ame/i', '', $text);
+
         // Remove any leading non-word characters (whitespace, punctuation, etc.)
-        return preg_replace('/^[^\w]+/u', '', $withoutTrigger);
+        return (string) preg_replace('/^[^\w]+/u', '', $withoutTrigger);
     }
 }
