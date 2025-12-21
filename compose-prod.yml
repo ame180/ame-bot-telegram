@@ -1,0 +1,10 @@
+services:
+  bot:
+    image: ghcr.io/ame180/ame-bot-telegram:latest
+    restart: unless-stopped
+    volumes:
+      - ./gemini_prompt.md:/app/gemini_prompt.md
+      - ./gemini_responses.json:/app/gemini_responses.json
+    env_file:
+      - .env
+    command: php run.php

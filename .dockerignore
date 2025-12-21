@@ -1,0 +1,15 @@
+.git/
+.github/
+.gitignore
+.php-cs-fixer.php
+.env
+.env.example
+README.md
+compose.yml
+compose-prod.yml
+gemini_prompt.md
+gemini_responses.json
+phpstan.neon
+vendor/
+.php-cs-fixer.cache
+infra/

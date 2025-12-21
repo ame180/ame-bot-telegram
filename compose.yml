@@ -1,0 +1,11 @@
+services:
+  bot:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile-prod
+      target: dev
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    command: php run.php

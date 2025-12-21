@@ -1,0 +1,5 @@
+/vendor/
+.env
+.php-cs-fixer.cache
+gemini_responses.json
+gemini_prompt.md

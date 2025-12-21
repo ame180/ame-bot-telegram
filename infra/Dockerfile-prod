@@ -1,0 +1,32 @@
+FROM php:8.5-cli AS base
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y \
+    git \
+    unzip \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+
+FROM base AS dev
+
+CMD ["php", "run.php"]
+
+
+FROM base AS prod
+
+COPY composer.json composer.lock ./
+
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress
+
+COPY . .
+
+RUN groupadd -g 1000 amebot && \
+    useradd -u 1000 -ms /bin/bash -g amebot amebot && \
+    chown -R amebot:amebot /app
+
+USER amebot
+
+CMD ["php", "run.php"]
