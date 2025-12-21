@@ -31,8 +31,6 @@ class GeminiHandler implements MessageHandlerInterface
 
         $apiKey = $_ENV['GEMINI_API_KEY'] ?? null;
 
-        echo 'ApiKey: ' . $apiKey . PHP_EOL;
-
         if (empty($apiKey)) {
             return Request::sendMessage([
                 'chat_id' => $message->getChat()->getId(),
@@ -55,7 +53,7 @@ class GeminiHandler implements MessageHandlerInterface
             return Request::sendMessage([
                 'chat_id' => $message->getChat()->getId(),
                 'text' => $responseText,
-                'parse_mode' => 'MarkdownV2',
+                'parse_mode' => 'HTML',
             ]);
         } catch (\Exception $e) {
             echo 'Gemini API error: ' . $e->getMessage() . PHP_EOL;
