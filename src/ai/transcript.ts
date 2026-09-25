@@ -17,7 +17,10 @@ export function formatUtcOffset(date: Date, timeZone: string): string {
     .formatToParts(date)
     .find((part) => part.type === 'timeZoneName');
 
-  return offsetPart?.value.replace('GMT', 'UTC') || 'UTC';
+  // Older ICU versions render a zero offset as a bare "GMT" instead of "GMT+00:00".
+  const offset = offsetPart?.value.replace('GMT', '') || '+00:00';
+
+  return `UTC${offset}`;
 }
 
 export function formatMessage(message: StoredMessage, timeZone: string): string {

@@ -37,6 +37,6 @@ describe('formatUtcOffset', () => {
     const date = new Date('2026-01-15T12:00:00Z');
 
     expect(formatUtcOffset(date, 'Europe/Warsaw')).toBe('UTC+01:00');
-    expect(formatUtcOffset(date, 'UTC')).toBe('UTC');
+    expect(formatUtcOffset(date, 'UTC')).toBe('UTC+00:00');
   });
 });
