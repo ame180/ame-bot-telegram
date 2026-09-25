@@ -3,9 +3,11 @@ services:
     image: ghcr.io/ame180/ame-bot-telegram:latest
     restart: unless-stopped
     volumes:
-      - ./gemini_prompt.md:/app/gemini_prompt.md
-      - ./gemini_responses.json:/app/gemini_responses.json
-      - ./.env:/app/.env
+      - ./system_prompt.md:/app/system_prompt.md:ro
+      - ./responses.json:/app/responses.json:ro
+      - bot_data:/app/data
     env_file:
       - .env
-    command: php run.php
+
+volumes:
+  bot_data:

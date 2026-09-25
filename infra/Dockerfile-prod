@@ -1,32 +1,37 @@
-FROM php:8.5-cli AS base
+FROM node:24 AS base
 
 WORKDIR /app
-
-RUN apt-get update && apt-get install -y \
-    git \
-    unzip \
-    && rm -rf /var/lib/apt/lists/*
-
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 
 FROM base AS dev
 
-CMD ["php", "run.php"]
+CMD ["sh", "-c", "npm ci && npm run dev"]
+
+
+FROM base AS build
+
+COPY package.json package-lock.json ./
+
+RUN npm ci --no-audit --no-fund
+
+COPY tsconfig.json tsconfig.build.json ./
+COPY src ./src
+
+RUN npm run build
 
 
 FROM base AS prod
 
-COPY composer.json composer.lock ./
+ENV NODE_ENV=production
 
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress
+COPY package.json package-lock.json ./
 
-COPY . .
+RUN npm ci --omit=dev --no-audit --no-fund && npm cache clean --force
 
-RUN groupadd -g 1000 amebot && \
-    useradd -u 1000 -ms /bin/bash -g amebot amebot && \
-    chown -R amebot:amebot /app
+COPY --from=build /app/dist ./dist
 
-USER amebot
+RUN mkdir -p data && chown -R node:node /app
 
-CMD ["php", "run.php"]
+USER node
+
+CMD ["node", "dist/index.js"]
