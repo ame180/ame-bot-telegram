@@ -22,7 +22,7 @@ export function toStoredMessage(message: Message): StoredMessage | null {
   };
 }
 
-function describeAuthor(message: Message): string {
+export function describeAuthor(message: Message): string {
   if (message.sender_chat) {
     return message.sender_chat.title ?? 'Anonymous';
   }

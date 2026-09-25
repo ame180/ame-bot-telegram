@@ -4,6 +4,7 @@ import type { Agent } from './ai/agent.js';
 import type { BackgroundTasks } from './backgroundTasks.js';
 import type { BotTexts } from './prompts.js';
 import { dropStaleUpdates } from './staleUpdates.js';
+import { describeAuthor } from './storage/fromTelegram.js';
 import type { MessageStore } from './storage/messages.js';
 import { recordIncomingMessages, recordMessage } from './storage/recorder.js';
 import { keepTyping, type ReplyTarget, sendReply } from './telegram/send.js';
@@ -52,7 +53,12 @@ export function createBot(dependencies: BotDependencies): Bot {
       const stopTyping = keepTyping(ctx.api, target);
 
       try {
-        const reply = await agent.reply({ question });
+        const reply = await agent.reply({
+          chatId: message.chat.id,
+          messageId: message.message_id,
+          author: describeAuthor(message),
+          question,
+        });
         await replyAndRecord(ctx.api, target, reply || texts.responses.error);
       } catch (error) {
         console.error('Agent error:', error);

@@ -18,6 +18,7 @@ describe('parseConfig', () => {
     expect(config.dbPath).toBe('data/bot.sqlite');
     expect(config.retentionDays).toBe(30);
     expect(config.contextMessages).toBe(20);
+    expect(config.timeZone).toBe('UTC');
   });
 
   it('allows ADMIN_IDS to be missing', () => {
@@ -28,6 +29,10 @@ describe('parseConfig', () => {
 
   it('lists every missing required variable', () => {
     expect(() => parseConfig({})).toThrow(/BOT_TOKEN[\s\S]*OPENROUTER_API_KEY/);
+  });
+
+  it('rejects unknown time zones', () => {
+    expect(() => parseConfig({ ...validEnv, TIME_ZONE: 'Mars/Olympus' })).toThrow(/TIME_ZONE/);
   });
 
   it('rejects non-numeric admin ids', () => {

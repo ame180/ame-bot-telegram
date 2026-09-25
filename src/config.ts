@@ -19,7 +19,17 @@ const envSchema = z.object({
   DB_PATH: z.string().min(1).default('data/bot.sqlite'),
   RETENTION_DAYS: z.coerce.number().int().positive().default(30),
   CONTEXT_MESSAGES: z.coerce.number().int().nonnegative().default(20),
+  TIME_ZONE: z.string().default('UTC').refine(isValidTimeZone, 'Unknown IANA time zone'),
 });
+
+function isValidTimeZone(timeZone: string): boolean {
+  try {
+    new Intl.DateTimeFormat('en-US', { timeZone });
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export interface Config {
   botToken: string;
@@ -30,6 +40,7 @@ export interface Config {
   dbPath: string;
   retentionDays: number;
   contextMessages: number;
+  timeZone: string;
 }
 
 export function parseConfig(env: Record<string, string | undefined>): Config {
@@ -53,5 +64,6 @@ export function parseConfig(env: Record<string, string | undefined>): Config {
     dbPath: parsed.DB_PATH,
     retentionDays: parsed.RETENTION_DAYS,
     contextMessages: parsed.CONTEXT_MESSAGES,
+    timeZone: parsed.TIME_ZONE,
   };
 }

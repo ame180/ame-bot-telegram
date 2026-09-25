@@ -34,6 +34,10 @@ const backgroundTasks = new BackgroundTasks();
 const agent = new Agent({
   model: openRouter.chat(config.openRouterModel),
   systemPrompt: texts.systemPrompt,
+  store,
+  contextMessages: config.contextMessages,
+  retentionDays: config.retentionDays,
+  timeZone: config.timeZone,
 });
 
 const bot = createBot({
