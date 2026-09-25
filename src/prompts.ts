@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 const DEFAULT_SYSTEM_PROMPT =
@@ -27,7 +27,7 @@ export function loadBotTexts(rootDirectory: string): BotTexts {
 }
 
 function loadSystemPrompt(path: string): string {
-  if (!existsSync(path)) {
+  if (!isRegularFile(path)) {
     return DEFAULT_SYSTEM_PROMPT;
   }
 
@@ -37,7 +37,7 @@ function loadSystemPrompt(path: string): string {
 }
 
 function loadResponses(path: string): Responses {
-  if (!existsSync(path)) {
+  if (!isRegularFile(path)) {
     return DEFAULT_RESPONSES;
   }
 
@@ -55,6 +55,11 @@ function loadResponses(path: string): Responses {
     greeting: stringOr(fileResponses.greeting, DEFAULT_RESPONSES.greeting),
     error: stringOr(fileResponses.error, DEFAULT_RESPONSES.error),
   };
+}
+
+// A missing bind-mount source makes Docker create a directory in its place.
+function isRegularFile(path: string): boolean {
+  return statSync(path, { throwIfNoEntry: false })?.isFile() ?? false;
 }
 
 function stringOr(value: unknown, fallback: string): string {

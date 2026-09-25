@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -31,5 +31,15 @@ describe('loadBotTexts', () => {
     expect(texts.systemPrompt).toBe('Custom prompt');
     expect(texts.responses.greeting).toBe('Hi :3');
     expect(texts.responses.error).toContain('error');
+  });
+
+  it('ignores directories in place of the files', () => {
+    mkdirSync(join(rootDirectory, 'system_prompt.md'));
+    mkdirSync(join(rootDirectory, 'responses.json'));
+
+    const texts = loadBotTexts(rootDirectory);
+
+    expect(texts.systemPrompt).toContain('Ame Bot');
+    expect(texts.responses.greeting).toBe('Hey! How can I help you?');
   });
 });
