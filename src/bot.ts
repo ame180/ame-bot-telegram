@@ -1,9 +1,11 @@
-import { Bot } from 'grammy';
+import { type Api, Bot } from 'grammy';
 import type { Message } from 'grammy/types';
 import type { Agent } from './ai/agent.js';
 import type { BackgroundTasks } from './backgroundTasks.js';
 import type { BotTexts } from './prompts.js';
 import { dropStaleUpdates } from './staleUpdates.js';
+import type { MessageStore } from './storage/messages.js';
+import { recordIncomingMessages, recordMessage } from './storage/recorder.js';
 import { keepTyping, type ReplyTarget, sendReply } from './telegram/send.js';
 import { isAddressedToBot, stripMention } from './trigger.js';
 
@@ -13,12 +15,20 @@ export interface BotDependencies {
   texts: BotTexts;
   agent: Agent;
   backgroundTasks: BackgroundTasks;
+  store: MessageStore;
 }
 
 export function createBot(dependencies: BotDependencies): Bot {
-  const { texts, agent, backgroundTasks } = dependencies;
+  const { texts, agent, backgroundTasks, store } = dependencies;
   const bot = new Bot(dependencies.botToken);
 
+  const replyAndRecord = async (api: Api, target: ReplyTarget, text: string) => {
+    for (const sentMessage of await sendReply(api, target, text)) {
+      recordMessage(store, sentMessage);
+    }
+  };
+
+  bot.use(recordIncomingMessages(store));
   bot.use(dropStaleUpdates(dependencies.updateTimeoutSeconds));
 
   bot.command('ping', (ctx) => ctx.reply('Pong!'));
@@ -34,7 +44,7 @@ export function createBot(dependencies: BotDependencies): Bot {
     const question = stripMention(message.text ?? message.caption ?? '', ctx.me.username);
 
     if (question === '') {
-      await sendReply(ctx.api, target, texts.responses.greeting);
+      await replyAndRecord(ctx.api, target, texts.responses.greeting);
       return;
     }
 
@@ -43,10 +53,10 @@ export function createBot(dependencies: BotDependencies): Bot {
 
       try {
         const reply = await agent.reply({ question });
-        await sendReply(ctx.api, target, reply || texts.responses.error);
+        await replyAndRecord(ctx.api, target, reply || texts.responses.error);
       } catch (error) {
         console.error('Agent error:', error);
-        await sendReply(ctx.api, target, texts.responses.error);
+        await replyAndRecord(ctx.api, target, texts.responses.error);
       } finally {
         stopTyping();
       }

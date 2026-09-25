@@ -4,6 +4,9 @@ import { BackgroundTasks } from './backgroundTasks.js';
 import { createBot } from './bot.js';
 import { type Config, parseConfig } from './config.js';
 import { loadBotTexts } from './prompts.js';
+import { openDatabase } from './storage/db.js';
+import { MessageStore } from './storage/messages.js';
+import { scheduleRetention } from './storage/retention.js';
 
 function loadConfigOrExit(): Config {
   try {
@@ -23,6 +26,10 @@ const openRouter = createOpenRouter({
   appName: 'Ame Bot',
 });
 
+const db = openDatabase(config.dbPath);
+const store = new MessageStore(db);
+const stopRetention = scheduleRetention(store, config.retentionDays);
+
 const backgroundTasks = new BackgroundTasks();
 const agent = new Agent({
   model: openRouter.chat(config.openRouterModel),
@@ -35,6 +42,7 @@ const bot = createBot({
   texts,
   agent,
   backgroundTasks,
+  store,
 });
 
 for (const signal of ['SIGINT', 'SIGTERM'] as const) {
@@ -50,4 +58,6 @@ await bot.start({
 });
 
 await backgroundTasks.drain();
+stopRetention();
+db.close();
 console.log('Bot stopped.');
