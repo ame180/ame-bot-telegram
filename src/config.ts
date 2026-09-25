@@ -2,17 +2,6 @@ import { z } from 'zod';
 
 const envSchema = z.object({
   BOT_TOKEN: z.string().min(1),
-  ADMIN_IDS: z
-    .string()
-    .default('')
-    .transform((ids) =>
-      ids
-        .split(',')
-        .map((id) => id.trim())
-        .filter((id) => id !== '')
-        .map(Number),
-    )
-    .pipe(z.array(z.number().int())),
   UPDATE_TIMEOUT_SECONDS: z.coerce.number().int().positive(),
   OPENROUTER_API_KEY: z.string().min(1),
   OPENROUTER_MODEL: z.string().min(1),
@@ -33,7 +22,6 @@ function isValidTimeZone(timeZone: string): boolean {
 
 export interface Config {
   botToken: string;
-  adminIds: number[];
   updateTimeoutSeconds: number;
   openRouterApiKey: string;
   openRouterModel: string;
@@ -57,7 +45,6 @@ export function parseConfig(env: Record<string, string | undefined>): Config {
 
   return {
     botToken: parsed.BOT_TOKEN,
-    adminIds: parsed.ADMIN_IDS,
     updateTimeoutSeconds: parsed.UPDATE_TIMEOUT_SECONDS,
     openRouterApiKey: parsed.OPENROUTER_API_KEY,
     openRouterModel: parsed.OPENROUTER_MODEL,
