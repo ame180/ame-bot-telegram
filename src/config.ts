@@ -2,10 +2,6 @@ import { z } from 'zod';
 
 const envSchema = z.object({
   BOT_TOKEN: z.string().min(1),
-  BOT_USERNAME: z
-    .string()
-    .min(1)
-    .transform((username) => username.replace(/^@/, '')),
   ADMIN_IDS: z
     .string()
     .default('')
@@ -27,7 +23,6 @@ const envSchema = z.object({
 
 export interface Config {
   botToken: string;
-  botUsername: string;
   adminIds: number[];
   updateTimeoutSeconds: number;
   openRouterApiKey: string;
@@ -51,7 +46,6 @@ export function parseConfig(env: Record<string, string | undefined>): Config {
 
   return {
     botToken: parsed.BOT_TOKEN,
-    botUsername: parsed.BOT_USERNAME,
     adminIds: parsed.ADMIN_IDS,
     updateTimeoutSeconds: parsed.UPDATE_TIMEOUT_SECONDS,
     openRouterApiKey: parsed.OPENROUTER_API_KEY,

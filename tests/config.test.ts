@@ -3,7 +3,6 @@ import { parseConfig } from '../src/config.js';
 
 const validEnv = {
   BOT_TOKEN: 'token',
-  BOT_USERNAME: '@ame_bot',
   ADMIN_IDS: '1, 2,,3',
   UPDATE_TIMEOUT_SECONDS: '10',
   OPENROUTER_API_KEY: 'key',
@@ -14,7 +13,6 @@ describe('parseConfig', () => {
   it('parses a valid environment with defaults', () => {
     const config = parseConfig(validEnv);
 
-    expect(config.botUsername).toBe('ame_bot');
     expect(config.adminIds).toEqual([1, 2, 3]);
     expect(config.updateTimeoutSeconds).toBe(10);
     expect(config.dbPath).toBe('data/bot.sqlite');
