@@ -7,7 +7,7 @@
   "author": "Ame",
   "type": "module",
   "engines": {
-    "node": ">=22.13"
+    "node": ">=24"
   },
   "scripts": {
     "dev": "tsx watch --env-file-if-exists=.env src/index.ts",
