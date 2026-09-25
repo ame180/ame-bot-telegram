@@ -1,5 +1,6 @@
-/vendor/
+/node_modules/
+/dist/
+/data/
 .env
-.php-cs-fixer.cache
-gemini_responses.json
-gemini_prompt.md
+system_prompt.md
+responses.json

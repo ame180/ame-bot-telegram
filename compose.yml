@@ -6,6 +6,9 @@ services:
       target: dev
     volumes:
       - .:/app
+      - node_modules:/app/node_modules
     env_file:
       - .env
-    command: php run.php
+
+volumes:
+  node_modules:
