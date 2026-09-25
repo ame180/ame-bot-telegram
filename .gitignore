@@ -4,5 +4,3 @@
 .env
 system_prompt.md
 responses.json
-gemini_prompt.md
-gemini_responses.json
