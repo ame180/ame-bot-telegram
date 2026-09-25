@@ -1,6 +1,6 @@
 import type { DatabaseSync } from 'node:sqlite';
 import { MockLanguageModelV4 } from 'ai/test';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Agent, type AgentOptions } from '../../src/ai/agent.js';
 import { openDatabase } from '../../src/storage/db.js';
 import { MessageStore, type StoredMessage } from '../../src/storage/messages.js';
@@ -123,5 +123,56 @@ describe('Agent', () => {
     await createAgent(model).reply({ chatId: CHAT, messageId: 2, author: 'Alice', question: 'q' });
 
     expect(promptOf(model)).not.toContain('secret from another chat');
+  });
+
+  it('runs a tool call and answers with its result', async () => {
+    store.save(message(1, { text: 'I love pizza with pineapple' }));
+    for (const messageId of [2, 3, 4]) {
+      store.save(message(messageId));
+    }
+    vi.spyOn(console, 'log').mockImplementation(() => {});
+    let call = 0;
+    const model = new MockLanguageModelV4({
+      doGenerate: async () => {
+        call++;
+        if (call === 1) {
+          return {
+            content: [
+              {
+                type: 'tool-call',
+                toolCallId: 'call-1',
+                toolName: 'search_messages',
+                input: JSON.stringify({ query: 'pizza' }),
+              },
+            ],
+            finishReason: { unified: 'tool-calls', raw: undefined },
+            usage,
+            warnings: [],
+          };
+        }
+
+        return {
+          content: [{ type: 'text', text: 'Alice loves pineapple pizza.' }],
+          finishReason: { unified: 'stop', raw: undefined },
+          usage,
+          warnings: [],
+        };
+      },
+    });
+
+    const reply = await createAgent(model).reply({
+      chatId: CHAT,
+      messageId: 5,
+      author: 'Bob',
+      question: 'what pizza does Alice like?',
+    });
+
+    expect(reply).toBe('Alice loves pineapple pizza.');
+    expect(model.doGenerateCalls).toHaveLength(2);
+    const toolNames = model.doGenerateCalls[0]?.tools?.map((tool) => tool.name);
+    expect(toolNames).toEqual(['get_messages_before', 'get_messages_in_range', 'search_messages']);
+    expect(JSON.stringify(model.doGenerateCalls[1]?.prompt)).toContain(
+      'I love pizza with pineapple',
+    );
   });
 });

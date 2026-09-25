@@ -1,8 +1,10 @@
-import { generateText, type LanguageModel } from 'ai';
+import { generateText, isStepCount, type LanguageModel } from 'ai';
 import type { MessageStore, StoredMessage } from '../storage/messages.js';
+import { createHistoryTools } from './tools.js';
 import { formatTimestamp, formatTranscript, formatUtcOffset } from './transcript.js';
 
 const MAX_REPLY_CHAIN_DEPTH = 10;
+const MAX_AGENT_STEPS = 5;
 
 const FORMATTING_INSTRUCTIONS = `Your reply is sent to Telegram with parse_mode HTML.
 Only use these tags: <b>, <i>, <u>, <s>, <code>, <pre>, <a href="...">, <blockquote>, <tg-spoiler>.
@@ -30,11 +32,21 @@ export class Agent {
   constructor(private readonly options: AgentOptions) {}
 
   async reply(request: AgentRequest): Promise<string> {
+    const { store, timeZone } = this.options;
     const result = await generateText({
       model: this.options.model,
       instructions: this.buildInstructions(),
       prompt: this.buildPrompt(request),
+      tools: createHistoryTools({ store, chatId: request.chatId, timeZone }),
+      stopWhen: isStepCount(MAX_AGENT_STEPS),
     });
+
+    const toolCalls = result.steps.flatMap((step) =>
+      step.toolCalls.map((toolCall) => `${toolCall.toolName}(${JSON.stringify(toolCall.input)})`),
+    );
+    if (toolCalls.length > 0) {
+      console.log(`Agent tool calls in chat ${request.chatId}: ${toolCalls.join(', ')}`);
+    }
 
     return result.text.trim();
   }
@@ -46,6 +58,7 @@ export class Agent {
 
     const historyInstructions = `You are chatting in a Telegram chat. Chat messages are shown as "[#<message id> <time>] <author>: <text>".
 You only know messages the bot has seen in this chat during the last ${retentionDays} days.
+The prompt includes the most recent messages. When you need more (summaries, questions about earlier discussion, who said what), use the history tools; don't call them when the question doesn't need chat history.
 Current time: ${currentTime} (${timeZone}, ${formatUtcOffset(now, timeZone)}).`;
 
     return [this.options.systemPrompt, historyInstructions, FORMATTING_INSTRUCTIONS].join('\n\n');
